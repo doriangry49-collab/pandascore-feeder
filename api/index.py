@@ -30,7 +30,7 @@ class handler(BaseHTTPRequestHandler):
         api_key = os.environ.get("PANDASCORE_API_KEY")
         db_url = os.environ.get("DATABASE_URL")
         
-        # ... kodun geri kalanı aynı ...
+  
 
 
     def do_GET(self):
