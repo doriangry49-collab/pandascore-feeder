@@ -5,6 +5,33 @@ import requests
 import psycopg2 # yeni tercümanımız
 
 class handler(BaseHTTPRequestHandler):
+    from http.server import BaseHTTPRequestHandler
+import os
+import json
+import requests
+import psycopg2
+
+class handler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        # --- YENİ GÜVENLİK KONTROLÜ BURADA BAŞLIYOR ---
+        cron_secret = os.environ.get("cron_secret")
+        auth_header = self.headers.get('Authorization')
+
+        # cron secret ayarlıysa ve gelen istekte doğru parola yoksa, kapıdan çevir.
+        if cron_secret and auth_header != f"Bearer {cron_secret}":
+            self.send_response(401)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "unauthorized"}).encode())
+            return
+        # --- GÜVENLİK KONTROLÜ BİTTİ ---
+
+        api_key = os.environ.get("PANDASCORE_API_KEY")
+        db_url = os.environ.get("DATABASE_URL")
+        
+        # ... kodun geri kalanı aynı ...
+
 
     def do_GET(self):
         api_key = os.environ.get("PANDASCORE_API_KEY")
