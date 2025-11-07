@@ -1,17 +1,92 @@
-# pandascore-feeder
+# PandaScore Feeder
 
-Note about Vercel configuration
---------------------------------
+CS:GO maç verilerini ve analizlerini sunan bir API servisi. [PandaScore API](https://pandascore.co/) üzerinden maç verilerini çeker, analiz eder ve tahminler üretir.
 
-This repository uses an infra-as-code approach: `vercel.json` is the authoritative configuration for builds and cron jobs. When `vercel.json` contains build settings (for example the `builds` block) Vercel will prefer the repository configuration over the Project Settings in the Dashboard. That can cause the Dashboard to show a warning like:
+## Özellikler
 
-"Configuration Settings in the current Production deployment differ from your current Project Settings."
+- 🎮 Yaklaşan CS:GO maçlarının takibi
+- 📊 Canlı maç skorları ve istatistikleri
+- 🔄 WebSocket ile gerçek zamanlı güncellemeler
+- 📈 Takım performans analizleri
+- 🎯 Maç sonucu tahminleri
+- 🗺️ Harita bazlı performans analizi
 
-What this means for you:
-- If you want repo-driven, repeatable deployments, keep `vercel.json` in the repo and manage builds/crons there.
-- If you prefer Dashboard-managed builds, remove or simplify `vercel.json` (for example remove the `builds` block) and deploy.
+## API Endpointleri
 
-Cron note:
-- Hobby (free) Vercel plans limit cron frequency. Hourly cron requires Pro. The current `vercel.json` in this repo uses a daily cron (`0 0 * * *`) to remain compatible with Hobby accounts.
+### Temel Endpointler
 
-If you want me to switch to Dashboard-managed settings instead, say so and I'll remove the conflicting fields from `vercel.json` and push the change.
+- `GET /api` - Yaklaşan maçları listeler
+- `GET /api/live` - Devam eden maçları ve skorları getirir
+- `GET /api/teams` - Takım listesi ve istatistiklerini getirir
+  - `?team_id=X` - Belirli bir takımın detaylarını getirir
+
+### Analiz Endpointleri
+
+- `GET /api/analyze` - Takım analizlerini getirir
+  - `?team_id=X` - Tek takım analizi
+  - `?team1_id=X&team2_id=Y` - İki takım karşılaştırması
+
+- `GET /api/predict` - Maç tahminlerini getirir
+  - `?team1_id=X&team2_id=Y` - İki takım arasında tahmin üretir
+  - `?match_id=X` - Belirli bir maç için tahmin üretir ve kaydeder
+
+- `GET /api/matchstats` - Birleşik analiz sonuçlarını getirir
+  - `?match_id=X` - Maç detayları, takım analizleri ve tahminler
+  - `?team_id=X` - Tek takım için detaylı analiz
+  - `?team1_id=X&team2_id=Y` - İki takım için karşılaştırmalı analiz
+
+### WebSocket Desteği
+
+Pusher üzerinden gerçek zamanlı güncellemeler:
+- `matches` kanalı - Tüm maç listesi güncellemeleri
+- `match-{id}` kanalları - Belirli maçların canlı güncellemeleri
+
+## Kurulum
+
+### Gerekli Environment Variables
+
+```
+DATABASE_URL="postgresql://<user>:<pass>@<host>:5432/<db>"
+PANDASCORE_API_KEY="your-api-key"
+PUSHER_APP_ID="your-app-id"
+PUSHER_KEY="your-key"
+PUSHER_SECRET="your-secret"
+PUSHER_CLUSTER="eu"
+```
+
+### Vercel Deployment
+
+1. Repository'yi fork edin
+2. Vercel'de yeni proje oluşturun
+3. Environment variable'ları ekleyin
+4. Deploy edin
+
+### Yerel Geliştirme
+
+1. Repository'yi klonlayın
+2. Dependencies'leri yükleyin:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. `.env` dosyasını oluşturun
+4. Geliştirme sunucusunu başlatın:
+   ```bash
+   vercel dev
+   ```
+
+## Database Şeması
+
+Ana tablolar:
+- `matches` - Maç kayıtları
+- `teams` - Takım bilgileri
+- `team_stats` - Takım istatistikleri
+- `historical_matches` - Geçmiş maç kayıtları
+- `predictions` - Maç tahminleri
+- `match_statistics` - Canlı maç istatistikleri
+
+## Vercel Konfigürasyonu
+
+Bu repository, Vercel konfigürasyonu için Infrastructure as Code yaklaşımını kullanır:
+- Build ayarları ve cron görevleri `vercel.json` içinde tanımlıdır
+- Günlük cron görevi (`0 0 * * *`) Hobby hesaplarıyla uyumludur
+- Tüm endpoint'ler CORS desteklidir

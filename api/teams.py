@@ -145,10 +145,33 @@ class handler(BaseHTTPRequestHandler):
         }
 
     def fetch_all_teams(self, api_key, database_url):
-        # Fetch top teams from PandaScore
-        headers = {'Authorization': f'Bearer {api_key}'}
-        teams_url = 'https://api.pandascore.co/csgo/teams?sort=-rating&page[size]=50'
-        response = requests.get(teams_url, headers=headers)
+    # Fetch top teams from PandaScore
+    headers = {'Authorization': f'Bearer {api_key}'}
+        # Use a plain teams list request first (no paging/sort) to avoid
+        # parameter-related errors from the PandaScore API.
+        teams_url = 'https://api.pandascore.co/csgo/teams'
+
+        # Debugging logs (safe: do not print the full API key)
+        try:
+            key_len = len(api_key) if api_key else 0
+        except Exception:
+            key_len = 0
+        print(f"[teams] Requesting PandaScore teams list url={teams_url} auth_present={key_len>0} key_len={key_len}")
+
+        try:
+            response = requests.get(teams_url, headers=headers, timeout=15)
+        except Exception as e:
+            # Log the exception to help debugging in production logs
+            print(f"[teams] Request exception: {type(e).__name__}: {e}")
+            raise
+
+        # Log response status and a short snippet of body for debugging
+        resp_snippet = (response.text[:1000] + '...') if response.text and len(response.text) > 1000 else response.text
+        print(f"[teams] PandaScore response status={response.status_code} body_snippet={resp_snippet}")
+
+        # If the API returns an error, include HTTP status for easier debugging
+        if response.status_code != 200:
+            raise Exception(f"Error fetching teams data (status={response.status_code}): {response.text}")
         
         if response.status_code != 200:
             raise Exception(f"Error fetching teams data: {response.text}")

@@ -7,12 +7,33 @@
   ],
   "routes": [
     {
+      "src": "/api/debug_pandascore",
+      "dest": "api/debug_pandascore.py",
+      "continue": true,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type"
+      }
+    },
+    {
+      "src": "/api/matchstats",
+      "dest": "api/matchstats.py",
+      "continue": true,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type"
+      }
+    },
+    {
       "src": "/api/predict",
       "dest": "api/predict.py",
       "continue": true,
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS"
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type"
       }
     },
     {
@@ -21,7 +42,8 @@
       "continue": true,
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS"
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type"
       }
     },
     {
@@ -30,7 +52,8 @@
       "continue": true,
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS"
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type"
       }
     },
     {
@@ -39,7 +62,8 @@
       "continue": true,
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS"
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type"
       }
     }
   ],
@@ -49,5 +73,9 @@
       "schedule": "0 0 * * *"
     }
   ],
-  "public": true
+  "public": true,
+  "github": {
+    "enabled": true,
+    "silent": true
+  }
 }
