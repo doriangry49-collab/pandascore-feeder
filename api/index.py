@@ -40,6 +40,7 @@ class handler(BaseHTTPRequestHandler):
 
             # 3. tablo oluşturma
             print("tablo oluşturma/kontrol etme komutu gönderiliyor...")
+            # Ana tablo güncellemesi
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS matches (
                     id INTEGER PRIMARY KEY,
@@ -49,6 +50,45 @@ class handler(BaseHTTPRequestHandler):
                     league_name VARCHAR(255),
                     raw_data JSONB,
                     inserted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                
+                -- Yeni kolonları ekle (varsa eklemez)
+                DO $$ 
+                BEGIN 
+                    BEGIN
+                        ALTER TABLE matches 
+                            ADD COLUMN match_status VARCHAR(50),
+                            ADD COLUMN live_score JSONB,
+                            ADD COLUMN player_stats JSONB,
+                            ADD COLUMN round_history JSONB;
+                    EXCEPTION
+                        WHEN duplicate_column THEN 
+                            NULL;
+                    END;
+                END $$;
+            """)
+            
+            # İstatistik tablosu
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS match_statistics (
+                    match_id INTEGER REFERENCES matches(id),
+                    timestamp TIMESTAMP WITH TIME ZONE,
+                    event_type VARCHAR(100),
+                    event_data JSONB,
+                    PRIMARY KEY (match_id, timestamp)
+                );
+            """)
+            
+            # Tahmin tablosu
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS predictions (
+                    match_id INTEGER REFERENCES matches(id),
+                    timestamp TIMESTAMP WITH TIME ZONE,
+                    prediction_type VARCHAR(100),
+                    confidence FLOAT,
+                    prediction_data JSONB,
+                    actual_result JSONB,
+                    PRIMARY KEY (match_id, timestamp)
                 );
             """)
             print("tablo komutu işlendi.")
