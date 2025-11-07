@@ -9,22 +9,38 @@
     {
       "src": "/api/predict",
       "dest": "api/predict.py",
-      "continue": true
+      "continue": true,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS"
+      }
     },
     {
       "src": "/api/analyze",
       "dest": "api/analyze.py",
-      "continue": true
+      "continue": true,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS"
+      }
     },
     {
       "src": "/api/teams",
       "dest": "api/teams.py",
-      "continue": true
+      "continue": true,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS"
+      }
     },
     {
       "src": "/api",
       "dest": "api/index.py",
-      "continue": true
+      "continue": true,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS"
+      }
     }
   ],
   "crons": [
@@ -32,5 +48,6 @@
       "path": "/api",
       "schedule": "0 0 * * *"
     }
-  ]
+  ],
+  "public": true
 }
