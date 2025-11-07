@@ -39,23 +39,31 @@
       el.textContent = new Date().toISOString() + ' — ' + m + '\n' + el.textContent;
     }
 
+    async function doConnect(key, cluster){
+      try{
+        Pusher.logToConsole = false;
+        pusher = new Pusher(key, { cluster: cluster });
+
+        // listen general matches channel
+        const matches = pusher.subscribe('matches');
+        matches.bind('list-update', (data)=>{
+          log('matches:list-update — ' + JSON.stringify(data));
+        });
+
+        document.getElementById('connect').disabled = true;
+        document.getElementById('disconnect').disabled = false;
+        log('Connected to Pusher cluster=' + cluster);
+      }catch(e){
+        log('Connection error: ' + e.message);
+        alert('Pusher bağlantı hatası: ' + e.message);
+      }
+    }
+
     document.getElementById('connect').addEventListener('click', ()=>{
       const key = document.getElementById('key').value.trim();
       const cluster = document.getElementById('cluster').value.trim() || 'eu';
       if(!key){ alert('Lütfen PUSHER_KEY girin'); return }
-
-      Pusher.logToConsole = false;
-      pusher = new Pusher(key, { cluster: cluster });
-
-      // listen general matches channel
-      const matches = pusher.subscribe('matches');
-      matches.bind('list-update', (data)=>{
-        log('matches:list-update — ' + JSON.stringify(data));
-      });
-
-      document.getElementById('connect').disabled = true;
-      document.getElementById('disconnect').disabled = false;
-      log('Connected to Pusher cluster=' + cluster);
+      doConnect(key, cluster);
     });
 
     document.getElementById('disconnect').addEventListener('click', ()=>{
@@ -87,6 +95,25 @@
       delete channels[chan];
       log('Unsubscribed ' + chan);
     });
+
+    // On load, try to fetch public pusher key from the server and auto-connect if available
+    (async function tryAutoConnect(){
+      try{
+        const resp = await fetch('/api/pusher_key');
+        if(!resp.ok) throw new Error('no key');
+        const j = await resp.json();
+        if(j && j.pusher_key){
+          document.getElementById('key').value = j.pusher_key;
+          document.getElementById('cluster').value = j.pusher_cluster || 'eu';
+          // auto-connect
+          doConnect(j.pusher_key, j.pusher_cluster || 'eu');
+          log('Auto-loaded Pusher key from /api/pusher_key');
+        }
+      }catch(e){
+        // ignore — user can paste key manually
+        console.debug('Auto-load pusher key failed:', e.message);
+      }
+    })();
   </script>
 </body>
 </html>
