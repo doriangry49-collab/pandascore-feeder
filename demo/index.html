@@ -97,9 +97,21 @@
       log('Unsubscribed ' + chan);
     });
 
-    // On load, try to fetch public pusher key from the server and auto-connect if available
+    // On load, try to auto-connect using one of these sources (in order):
+    // 1) window.PUSHER_PUBLIC_KEY (embedded file), 2) /api/pusher_key endpoint
     (async function tryAutoConnect(){
       try{
+        if(window.PUSHER_PUBLIC_KEY){
+          const key = window.PUSHER_PUBLIC_KEY;
+          const cluster = window.PUSHER_PUBLIC_CLUSTER || document.getElementById('cluster').value || 'eu';
+          document.getElementById('key').value = key;
+          document.getElementById('cluster').value = cluster;
+          doConnect(key, cluster);
+          log('Auto-loaded Pusher key from demo/pusher_public.js');
+          return;
+        }
+
+        // fallback: try server endpoint
         const resp = await fetch('/api/pusher_key');
         if(!resp.ok) throw new Error('no key');
         const j = await resp.json();
