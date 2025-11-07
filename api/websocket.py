@@ -9,11 +9,21 @@ import time
 
 # Pusher client initialization
 def get_pusher_client():
+    # Guard: ensure required env vars exist before creating client
+    app_id = os.environ.get('PUSHER_APP_ID')
+    key = os.environ.get('PUSHER_KEY')
+    secret = os.environ.get('PUSHER_SECRET')
+    cluster = os.environ.get('PUSHER_CLUSTER', 'eu')
+
+    if not (app_id and key and secret):
+        # Missing credentials -> return None so callers can skip publishing
+        return None
+
     return pusher.Pusher(
-        app_id=os.environ.get('PUSHER_APP_ID'),
-        key=os.environ.get('PUSHER_KEY'),
-        secret=os.environ.get('PUSHER_SECRET'),
-        cluster=os.environ.get('PUSHER_CLUSTER', 'eu'),
+        app_id=app_id,
+        key=key,
+        secret=secret,
+        cluster=cluster,
         ssl=True
     )
 
@@ -28,8 +38,9 @@ class handler(BaseHTTPRequestHandler):
             return
             
         try:
-            # Pusher client'ı başlat
+            # Pusher client'ı başlat (None ise publish adımları atlanacak)
             pusher_client = get_pusher_client()
+            pusher_enabled = pusher_client is not None
             
             # 1. Canlı maçları çek
             live_matches = self._fetch_live_matches(api_key)
@@ -43,16 +54,21 @@ class handler(BaseHTTPRequestHandler):
                     self._save_match_data(match_data, db_url)
                     results.append(match_data)
                     
-                    # WebSocket üzerinden yayınla
-                    channel = f"match-{match_data['match_id']}"
-                    pusher_client.trigger(
-                        channel,
-                        'match-update',
-                        {
-                            'match': match_data,
-                            'timestamp': datetime.utcnow().isoformat()
-                        }
-                    )
+                    # WebSocket üzerinden yayınla (sadece pusher mevcutsa)
+                    if pusher_enabled:
+                        try:
+                            channel = f"match-{match_data['match_id']}"
+                            pusher_client.trigger(
+                                channel,
+                                'match-update',
+                                {
+                                    'match': match_data,
+                                    'timestamp': datetime.utcnow().isoformat()
+                                }
+                            )
+                        except Exception as e:
+                            # Log publishing failure but don't fail the whole request
+                            print(f"Pusher publish hata: {e}")
             
             # 3. Genel maç listesi güncellemesini yayınla
             pusher_client.trigger(
