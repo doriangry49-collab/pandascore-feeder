@@ -7,6 +7,11 @@
   ],
   "routes": [
     {
+      "src": "/api/analyze",
+      "dest": "api/analyze.py",
+      "continue": true
+    },
+    {
       "src": "/api/teams",
       "dest": "api/teams.py",
       "continue": true
